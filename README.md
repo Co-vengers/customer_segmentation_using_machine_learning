@@ -29,7 +29,7 @@ This project is a Django-based web application for customer segmentation using m
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:Co-vengers/customer_segmentation_using_machine_learning.git
    cd customer_segmentation_using_machine_learning
    ```
 2. Create and activate a virtual environment:
