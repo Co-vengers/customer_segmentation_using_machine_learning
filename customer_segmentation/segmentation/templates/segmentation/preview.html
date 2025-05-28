@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Preview Dataset - Customer Segmentation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    .stats-table th {
+        width: 120px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Preview Dataset</li>
+            </ol>
+        </nav>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-table me-2"></i>{{ dataset.name }}</h4>
+                <a href="{% url 'configure_clustering' dataset.id %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-chart-pie me-1"></i> Continue to Segmentation
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        {% if dataset.description %}
+                            <p class="mb-0"><strong>Description:</strong> {{ dataset.description }}</p>
+                        {% endif %}
+                        <p><strong>Data Size:</strong> {{ dataset.rows }} rows × {{ dataset.columns }} columns</p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <p class="mb-0"><strong>Uploaded:</strong> {{ dataset.uploaded_at|date:"F j, Y, g:i a" }}</p>
+                    </div>
+                </div>
+                
+                <!-- Data Preview Table -->
+                <h5 class="mb-3"><i class="fas fa-eye me-2"></i>Data Preview</h5>
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                {% for column in column_names %}
+                                <th>{{ column }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in preview_data %}
+                            <tr>
+                                {% for column in column_names %}
+                                <td>{{ row|get_item:column }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="text-muted text-end">
+                        <small>Showing first 10 rows</small>
+                    </div>
+                </div>
+                
+                <!-- Column Statistics -->
+                <h5 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Column Statistics</h5>
+                <div class="row">
+                    {% for col_name, col_stats in stats.items %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="stats-container">
+                            <h6 class="border-bottom pb-2 mb-3">{{ col_name }}</h6>
+                            <table class="table table-sm stats-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Mean</th>
+                                        <td>{{ col_stats.mean|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Median</th>
+                                        <td>{{ col_stats.median|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Std Dev</th>
+                                        <td>{{ col_stats.std|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Min</th>
+                                        <td>{{ col_stats.min|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Max</th>
+                                        <td>{{ col_stats.max|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Missing</th>
+                                        <td>{{ col_stats.missing }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                    </a>
+                    <a href="{% url 'configure_clustering' dataset.id %}" class="btn btn-primary">
+                        <i class="fas fa-chart-pie me-1"></i> Continue to Segmentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ column_names_json|json_script:"column-names-data" }}
+{{ preview_data_json|json_script:"preview-data" }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Use JSON.parse to safely convert strings into JS objects
+        var columnNames = JSON.parse('{{ column_names_json|escapejs }}');
+        var previewData = JSON.parse('{{ preview_data_json|escapejs }}');
+
+        var rows = document.querySelectorAll('table tbody tr');
+
+        rows.forEach(function(row, rowIndex) {
+            var cells = row.querySelectorAll('td');
+            var rowData = previewData[rowIndex];
+
+            columnNames.forEach(function(colName, colIndex) {
+                var value = rowData[colName];
+                cells[colIndex].textContent = value !== null && value !== undefined ? value : 'N/A';
+            });
+        });
+    });
+</script>
+
+{% endblock %}

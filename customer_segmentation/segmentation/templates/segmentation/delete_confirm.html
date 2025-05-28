@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Delete Dataset{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-danger">
+        <h4>Are you sure you want to delete the dataset: <strong>{{ dataset.name }}</strong>?</h4>
+        <p>This action cannot be undone.</p>
+        <form method="post">
+            {% csrf_token %}
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
